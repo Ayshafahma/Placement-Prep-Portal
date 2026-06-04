@@ -1,0 +1,13 @@
+# Virtual environment
+backend/venv/
+
+# Database
+backend/instance/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# VS Code
+.vscode/

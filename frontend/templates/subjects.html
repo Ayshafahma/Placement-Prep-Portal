@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Subjects — PlacementPrep{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Subject Management</div>
+      <div class="page-sub">Track your preparation across all topics</div>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('add-modal').classList.add('open')">+ Add Subject</button>
+  </div>
+
+  <div class="filters">
+    <a href="{{ url_for('subjects') }}" class="filter-btn {% if selected=='all' %}active{% endif %}">All</a>
+    {% for cat in categories %}
+    <a href="{{ url_for('subjects', category=cat) }}" class="filter-btn {% if selected==cat %}active{% endif %}">{{ cat }}</a>
+    {% endfor %}
+  </div>
+
+  {% if subjects %}
+  <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:1.25rem;">
+    {% for s in subjects %}
+    <div class="card" style="border-top:3px solid {% if s.status=='completed' %}var(--accent2){% elif s.status=='in_progress' %}var(--accent){% else %}var(--border){% endif %};">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1rem;">
+        <div>
+          <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:1rem;">{{ s.name }}</div>
+          <span class="badge badge-technical" style="margin-top:0.35rem; display:inline-block;">{{ s.category }}</span>
+        </div>
+        {% if current_user.role == 'admin' %}
+<div style="display:flex; gap:0.4rem;">
+  <button class="btn btn-ghost btn-sm" onclick="openEdit(...)">Edit</button>
+  <form method="POST" action="...">
+    <button class="btn btn-danger btn-sm" type="submit">Del</button>
+  </form>
+</div>
+{% endif %}
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+        <span style="font-size:0.82rem; color:var(--muted);">Progress</span>
+        <span style="font-size:0.85rem; font-weight:600;">{{ s.completed_topics }} / {{ s.total_topics }} topics</span>
+      </div>
+      <div class="progress-wrap" style="margin-bottom:1rem;">
+        <div class="progress-bar progress-{% if s.status=='completed' %}green{% else %}blue{% endif %}"
+             style="width:{% if s.total_topics>0 %}{{ ((s.completed_topics/s.total_topics)*100)|int }}{% else %}0{% endif %}%"></div>
+      </div>
+      {% if s.notes %}
+      <div style="font-size:0.82rem; color:var(--muted); background:var(--surface2); padding:0.6rem 0.8rem; border-radius:6px; line-height:1.5;">
+        {{ s.notes[:120] }}{% if s.notes|length > 120 %}…{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card" style="text-align:center; padding:3rem;">
+    <div style="font-size:3rem; margin-bottom:1rem;">📚</div>
+    <div style="font-family:'Syne',sans-serif; font-weight:700; margin-bottom:0.5rem;">No subjects found</div>
+    <p style="color:var(--muted); margin-bottom:1.5rem;">Add your first subject to start tracking.</p>
+   {% if current_user.role == 'admin' %}
+  <button class="btn btn-primary" onclick="document.getElementById('add-modal').classList.add('open')">+ Add Subject</button>
+{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="add-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-title">Add New Subject</div>
+    <form method="POST" action="{{ url_for('add_subject') }}">
+      <div class="form-group">
+        <label>Subject Name</label>
+        <input type="text" name="name" placeholder="e.g. Dynamic Programming" required/>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <input type="text" name="category" placeholder="e.g. DSA, CS Core" list="cat-list" required/>
+        <datalist id="cat-list">
+          {% for cat in categories %}<option value="{{ cat }}">{% endfor %}
+          <option value="DSA"><option value="CS Core"><option value="Programming"><option value="Aptitude"><option value="System Design">
+        </datalist>
+      </div>
+      <div class="form-group">
+        <label>Total Topics</label>
+        <input type="number" name="total_topics" value="10" min="1" max="100"/>
+      </div>
+      <div class="form-group">
+        <label>Notes (optional)</label>
+        <textarea name="notes" placeholder="Resources, tips, links..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-modal').classList.remove('open')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Subject</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-title">Update Progress</div>
+    <form method="POST" id="edit-form" action="">
+      <div class="form-group">
+        <label>Subject</label>
+        <input type="text" id="edit-name" disabled style="opacity:.6;"/>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label>Total Topics</label>
+          <input type="number" name="total_topics" id="edit-total" min="1"/>
+        </div>
+        <div class="form-group">
+          <label>Completed Topics</label>
+          <input type="number" name="completed_topics" id="edit-completed" min="0"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea name="notes" id="edit-notes"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('edit-modal').classList.remove('open')">Cancel</button>
+        <button type="submit" class="btn btn-success">Save Progress</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openEdit(id, name, total, completed, notes) {
+  document.getElementById('edit-name').value = name;
+  document.getElementById('edit-total').value = total;
+  document.getElementById('edit-completed').value = completed;
+  document.getElementById('edit-notes').value = notes;
+  document.getElementById('edit-form').action = '/subjects/update/' + id;
+  document.getElementById('edit-modal').classList.add('open');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Question Bank — PlacementPrep{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Interview Question Bank</div>
+      <div class="page-sub">Collect and practice interview questions</div>
+    </div>
+   {% if current_user.role == 'admin' %}
+  <button class="btn btn-primary" onclick="document.getElementById('add-modal').classList.add('open')">+ Add Question</button>
+{% endif %}
+  </div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; align-items:center;">
+    <div>
+      <span style="font-size:0.78rem; color:var(--muted); margin-right:0.5rem; text-transform:uppercase; letter-spacing:.5px;">Category</span>
+      <div class="filters" style="display:inline-flex; margin:0;">
+        <a href="{{ url_for('questions', difficulty=sel_diff, solved=sel_solved) }}" class="filter-btn {% if sel_cat=='all' %}active{% endif %}">All</a>
+        <a href="{{ url_for('questions', category='Technical', difficulty=sel_diff, solved=sel_solved) }}" class="filter-btn {% if sel_cat=='Technical' %}active{% endif %}">Technical</a>
+        <a href="{{ url_for('questions', category='HR', difficulty=sel_diff, solved=sel_solved) }}" class="filter-btn {% if sel_cat=='HR' %}active{% endif %}">HR</a>
+        <a href="{{ url_for('questions', category='Behavioral', difficulty=sel_diff, solved=sel_solved) }}" class="filter-btn {% if sel_cat=='Behavioral' %}active{% endif %}">Behavioral</a>
+      </div>
+    </div>
+    <div>
+      <span style="font-size:0.78rem; color:var(--muted); margin-right:0.5rem; text-transform:uppercase; letter-spacing:.5px;">Difficulty</span>
+      <div class="filters" style="display:inline-flex; margin:0;">
+        <a href="{{ url_for('questions', category=sel_cat, solved=sel_solved) }}" class="filter-btn {% if sel_diff=='all' %}active{% endif %}">All</a>
+        <a href="{{ url_for('questions', category=sel_cat, difficulty='Easy', solved=sel_solved) }}" class="filter-btn {% if sel_diff=='Easy' %}active{% endif %}">Easy</a>
+        <a href="{{ url_for('questions', category=sel_cat, difficulty='Medium', solved=sel_solved) }}" class="filter-btn {% if sel_diff=='Medium' %}active{% endif %}">Medium</a>
+        <a href="{{ url_for('questions', category=sel_cat, difficulty='Hard', solved=sel_solved) }}" class="filter-btn {% if sel_diff=='Hard' %}active{% endif %}">Hard</a>
+      </div>
+    </div>
+    <div>
+      <span style="font-size:0.78rem; color:var(--muted); margin-right:0.5rem; text-transform:uppercase; letter-spacing:.5px;">Status</span>
+      <div class="filters" style="display:inline-flex; margin:0;">
+        <a href="{{ url_for('questions', category=sel_cat, difficulty=sel_diff) }}" class="filter-btn {% if sel_solved=='all' %}active{% endif %}">All</a>
+        <a href="{{ url_for('questions', category=sel_cat, difficulty=sel_diff, solved='yes') }}" class="filter-btn {% if sel_solved=='yes' %}active{% endif %}">Solved</a>
+        <a href="{{ url_for('questions', category=sel_cat, difficulty=sel_diff, solved='no') }}" class="filter-btn {% if sel_solved=='no' %}active{% endif %}">Unsolved</a>
+      </div>
+    </div>
+  </div>
+
+  {% if questions %}
+  <div style="display:flex; flex-direction:column; gap:0.75rem;">
+    {% for q in questions %}
+    <div class="card" style="padding:1.25rem;">
+      <div style="display:flex; align-items:flex-start; gap:1rem;">
+        <button onclick="toggleSolve({{ q.id }})"
+          style="flex-shrink:0; width:22px; height:22px; border-radius:50%;
+                 border:2px solid {% if q.is_solved %}var(--accent2){% else %}var(--border){% endif %};
+                 background:{% if q.is_solved %}var(--accent2){% else %}transparent{% endif %};
+                 cursor:pointer; display:flex; align-items:center; justify-content:center; margin-top:2px; transition:all .2s;">
+          {% if q.is_solved %}<span style="color:#0a0e1a; font-size:12px; font-weight:bold;">✓</span>{% endif %}
+        </button>
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:500; margin-bottom:0.5rem; line-height:1.5; {% if q.is_solved %}color:var(--muted); text-decoration:line-through;{% endif %}">
+            {{ q.question_text }}
+          </div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+            <span class="badge badge-{{ q.category.lower() }}">{{ q.category }}</span>
+            <span class="badge badge-{{ q.difficulty.lower() }}">{{ q.difficulty }}</span>
+            {% if q.company != 'General' %}<span style="font-size:0.78rem; color:var(--muted);">🏢 {{ q.company }}</span>{% endif %}
+            <span class="badge {% if q.is_solved %}badge-solved{% else %}badge-unsolved{% endif %}">
+              {% if q.is_solved %}Solved{% else %}Pending{% endif %}
+            </span>
+          </div>
+          {% if q.answer %}
+          <details style="margin-top:0.75rem;">
+            <summary style="cursor:pointer; font-size:0.83rem; color:var(--accent); list-style:none; display:flex; align-items:center; gap:0.35rem;">
+              <span>▶</span> View Answer
+            </summary>
+            <div style="margin-top:0.6rem; padding:0.75rem; background:var(--surface2); border-radius:8px; font-size:0.85rem; line-height:1.6; color:var(--muted);">
+              {{ q.answer }}
+            </div>
+          </details>
+          {% endif %}
+        </div>
+       {% if current_user.role == 'admin' %}
+  <form method="POST" action="{{ url_for('delete_question', qid=q.id) }}" onsubmit="return confirm('Delete this question?')">
+    <button class="btn btn-danger btn-sm" type="submit">✕</button>
+  </form>
+{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card" style="text-align:center; padding:3rem;">
+    <div style="font-size:3rem; margin-bottom:1rem;">❓</div>
+    <div style="font-family:'Syne',sans-serif; font-weight:700; margin-bottom:0.5rem;">No questions found</div>
+    <p style="color:var(--muted); margin-bottom:1.5rem;">Start building your question bank.</p>
+    <button class="btn btn-primary" onclick="document.getElementById('add-modal').classList.add('open')">+ Add First Question</button>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Add Question Modal -->
+<div class="modal-overlay" id="add-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-title">Add Interview Question</div>
+    <form method="POST" action="{{ url_for('add_question') }}">
+      <div class="form-group">
+        <label>Question</label>
+        <textarea name="question_text" placeholder="e.g. What is the difference between process and thread?" required rows="3"></textarea>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label>Category</label>
+          <select name="category">
+            <option>Technical</option>
+            <option>HR</option>
+            <option>Behavioral</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Difficulty</label>
+          <select name="difficulty">
+            <option>Easy</option>
+            <option selected>Medium</option>
+            <option>Hard</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Company (optional)</label>
+        <input type="text" name="company" placeholder="e.g. TCS, Infosys, Google" value="General"/>
+      </div>
+      <div class="form-group">
+        <label>Answer / Notes (optional)</label>
+        <textarea name="answer" placeholder="Write your answer or key points..." rows="4"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-modal').classList.remove('open')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Question</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+async function toggleSolve(id) {
+  await fetch('/questions/toggle/' + id, { method: 'POST' });
+  location.reload();
+}
+</script>
+{% endblock %}

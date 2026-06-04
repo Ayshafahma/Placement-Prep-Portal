@@ -1,0 +1,182 @@
+{% extends "base.html" %} {% block title %}Dashboard — PlacementPrep{% endblock
+%} {% block content %}
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Your placement preparation at a glance</div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card blue">
+      <div class="stat-num">{{ total_subjects }}</div>
+      <div class="stat-label">Total Subjects</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-num">{{ completed_subjects }}</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-num">{{ in_progress }}</div>
+      <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card pink">
+      <div class="stat-num">{{ solved_q }}/{{ total_q }}</div>
+      <div class="stat-label">Questions Solved</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Overall Progress</span>
+        <span
+          style="
+            font-family: &quot;Syne&quot;, sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--accent2);
+          "
+          >{{ overall_progress }}%</span
+        >
+      </div>
+      <div class="progress-wrap" style="height: 12px; margin-bottom: 1.5rem">
+        <div
+          class="progress-bar progress-green"
+          style="width:{{ overall_progress }}%"
+        ></div>
+      </div>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+        <div style="font-size: 0.83rem; color: var(--muted)">
+          <span
+            style="
+              display: inline-block;
+              width: 8px;
+              height: 8px;
+              background: var(--accent2);
+              border-radius: 50%;
+              margin-right: 5px;
+            "
+          ></span
+          >Completed
+        </div>
+        <div style="font-size: 0.83rem; color: var(--muted)">
+          <span
+            style="
+              display: inline-block;
+              width: 8px;
+              height: 8px;
+              background: var(--warning);
+              border-radius: 50%;
+              margin-right: 5px;
+            "
+          ></span
+          >In Progress
+        </div>
+        <div style="font-size: 0.83rem; color: var(--muted)">
+          <span
+            style="
+              display: inline-block;
+              width: 8px;
+              height: 8px;
+              background: var(--border);
+              border-radius: 50%;
+              margin-right: 5px;
+            "
+          ></span
+          >Not Started
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Question Bank</span>
+        <a href="{{ url_for('questions') }}" class="btn btn-ghost btn-sm"
+          >View All</a
+        >
+      </div>
+      {% if total_q > 0 %}
+      <div class="progress-wrap" style="margin-bottom: 0.75rem">
+        <div
+          class="progress-bar progress-blue"
+          style="width:{{ ((solved_q/total_q)*100)|int }}%"
+        ></div>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 1rem">
+        {{ solved_q }} of {{ total_q }} solved ({{ ((solved_q/total_q)*100)|int
+        }}%)
+      </div>
+      {% else %}
+      <p style="color: var(--muted); font-size: 0.88rem; margin-bottom: 1rem">
+        No questions yet. Add some to get started!
+      </p>
+      {% endif %}
+      <a href="{{ url_for('questions') }}" class="btn btn-primary btn-sm"
+        >+ Add Question</a
+      >
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 1.5rem">
+    <div class="card-header">
+      <span class="card-title">Recent Subjects</span>
+      <a href="{{ url_for('subjects') }}" class="btn btn-ghost btn-sm"
+        >Manage All →</a
+      >
+    </div>
+    {% if recent_subjects %}
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Category</th>
+          <th>Progress</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in recent_subjects %}
+        <tr>
+          <td style="font-weight: 500">{{ s.name }}</td>
+          <td><span class="badge badge-technical">{{ s.category }}</span></td>
+          <td style="min-width: 140px">
+            <div style="display: flex; align-items: center; gap: 0.75rem">
+              <div class="progress-wrap" style="flex: 1">
+                <div
+                  class="progress-bar progress-{% if s.status=='completed' %}green{% else %}blue{% endif %}"
+                  style="width:{% if s.total_topics > 0 %}{{ ((s.completed_topics/s.total_topics)*100)|int }}{% else %}0{% endif %}%"
+                ></div>
+              </div>
+              <span
+                style="font-size: 0.8rem; color: var(--muted); min-width: 35px"
+                >{{ s.completed_topics }}/{{ s.total_topics }}</span
+              >
+            </div>
+          </td>
+          <td>
+            {% if s.status == 'completed' %}<span class="badge badge-easy"
+              >✓ Done</span
+            >
+            {% elif s.status == 'in_progress' %}<span class="badge badge-medium"
+              >⏳ Active</span
+            >
+            {% else %}<span class="badge badge-unsolved">— Not Started</span>{%
+            endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--muted); font-size: 0.9rem">
+      No subjects yet.
+      <a href="{{ url_for('subjects') }}" style="color: var(--accent)"
+        >Add your first subject →</a
+      >
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
