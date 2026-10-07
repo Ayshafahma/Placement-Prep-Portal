@@ -509,11 +509,6 @@
           class="{% if request.endpoint=='subjects' %}active{% endif %}"
           >Subjects</a
         >
-        <a
-          href="{{ url_for('questions') }}"
-          class="{% if request.endpoint=='questions' %}active{% endif %}"
-          >Question Bank</a
-        >
       </div>
       <div class="nav-right">
         <span class="nav-user">👋 {{ current_user.username }}</span>
